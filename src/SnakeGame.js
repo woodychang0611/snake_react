@@ -54,7 +54,6 @@ class SnakeGame extends React.Component {
     this.state = {
       width: width,
       height: height,
-      length: 10,
       speed: speed,
       state: "Intro"
     };
@@ -168,7 +167,8 @@ class SnakeGame extends React.Component {
         targetDirection:null,
         paths: [[Math.floor(width / 4), Math.floor(height / 4)]],
         targetX: targetX,
-        targetY: targetY
+        targetY: targetY,
+        length: 3
       }
       ,
       () => this.ticks()
