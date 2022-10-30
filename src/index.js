@@ -1,12 +1,12 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import Snake from './Snake';
+import SnakeGame from './SnakeGame';
 import reportWebVitals from './reportWebVitals';
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
   <React.StrictMode>
-    <Snake></Snake>
+    <SnakeGame></SnakeGame>
   </React.StrictMode>
 );
 
