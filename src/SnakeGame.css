@@ -6,10 +6,6 @@
     outline: none; 
 }
 
-.SnakeGame:focus
-{
-    border: solid red 5px;
-}
 
 .Score
 {
@@ -32,6 +28,14 @@
     stroke-width: 0.8;
     stroke: greenyellow;
 }
+
+.snakeBodyGameOver
+{
+    fill:transparent;
+    stroke-width: 0.8;
+    stroke: red;
+}
+
 
 .message
 {

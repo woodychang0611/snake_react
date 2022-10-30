@@ -22,36 +22,40 @@ function GameContent(props) {
     case "GameOver":
       return (
         <Fragment>
+          <polyline className="snakeBodyGameOver" points={(props.paths).map((pt) => [pt[0] + 0.5, pt[1] + 0.5])} />
+          <circle className="target" cx={props.targetX + 0.5} cy={props.targetY + 0.5} r="0.5" ></circle>
           <text className="message" x={props.width / 2} y={props.height / 2} textAnchor="middle"
             dominantBaseline="middle"
-            font-size={props.width / 20}>Game Over!, press any key to restart</text>
+            fontSize={props.width / 20}>Game Over!, press any key to restart</text>
+        </Fragment>
+      )
+    case "Win":
+      return (
+        <Fragment>
+          <polyline className="snakeBody" points={(props.paths).map((pt) => [pt[0] + 0.5, pt[1] + 0.5])} />
+          <text className="message" x={props.width / 2} y={props.height / 2} textAnchor="middle"
+            dominantBaseline="middle"
+            fontSize={props.width / 20}>You win!, press any key to restart</text>
         </Fragment>
       )
     default:
       break;
   }
-
 }
 
-
-
-
 class SnakeGame extends React.Component {
-
   constructor(props) {
     super(props);
     // use focusRef to focus after loading
     this.focusRef = React.createRef();
-    const width = props.width ?? 30
-    const height = props.height ?? 20
+    const width = props.width ?? 15
+    const height = props.height ?? 10
+    const speed = props.speed ?? 5
     this.state = {
       width: width,
       height: height,
-      targetX: width / 2,
-      targetY: height / 2,
-      paths: [[width / 5, height / 5]],
       length: 10,
-      score: 0,
+      speed: speed,
       state: "Intro"
     };
 
@@ -67,32 +71,107 @@ class SnakeGame extends React.Component {
     this.focusRef.current.focus();
   }
 
+  pointIncluded = (paths, pt) => {
+    for (const i in paths) {
+      if (paths[i][0] == pt[0] && paths[i][1] == pt[1]) {
+        return true
+      }
+    }
+    return false
+  }
+  getNewTarget = () => {
+    if (this.state.paths.length >= this.state.width * this.state.width) {
+      return null
+    }
+    let x, y
+    do {
+      x = Math.floor(Math.random() * this.state.width)
+      y = Math.floor(Math.random() * this.state.height)
+    }
+    while (this.pointIncluded(this.state.paths, [x, y]))
+    return [x, y]
+  }
 
   ticks = () => {
+    //states are immutable, crate a copy of them for update 
     let head = [...this.state.paths].pop()
     let paths = [...this.state.paths]
-    let newPoint = this.move(head,this.state.direction??[0,0])
-    paths.push(newPoint)
-    while (paths.length > this.state.length) {
+
+    let direction = this.state.targetDirection ?? this.state.direction
+
+    let newPoint = this.move(head, direction)
+    let isGameOver = false
+    let isTarget = false
+    while (paths.length > this.state.length - 1) {
       paths.shift()
     }
+
+    isGameOver = (newPoint[0] < 0 || newPoint[1] < 0 ||
+      newPoint[0] >= this.state.width || newPoint[1] >= this.state.height ||
+      this.pointIncluded(paths, newPoint)
+    )
+    isTarget = (newPoint[0] == this.state.targetX) && newPoint[1] == this.state.targetY
+
+    paths.push(newPoint)
+
     this.setState(
       {
-        paths: paths
+        paths: paths,
+        direction: direction
+      },
+      () => {
+        if (isGameOver) {
+          this.setState(
+            {
+              state: "GameOver"
+            }
+          )
+        } else {
+          // Target eaten 
+          if (isTarget) {
+            let newTarget = this.getNewTarget()
+            let score = this.state.score + 10
+            if (!newTarget) {
+              this.setState({
+                score: score,
+                state: "Win"
+              }
+              )
+              return
+            }
+            this.setState({
+              score: score,
+              targetX: newTarget[0],
+              targetY: newTarget[1],
+              length: this.state.length += 1
+            }
+            )
+          }
+          setTimeout(this.ticks, 1000 / this.state.speed)
+        }
       }
     )
-    setTimeout(this.ticks, 100)
+
   }
 
   startGame = () => {
+    let width = this.state.width
+    let height = this.state.height
+    let targetX = Math.floor(width / 2)
+    let targetY = Math.floor(height / 2)
+
     this.setState(
       {
         state: "Playing",
         score: 0,
-        direction: [1, 0]
+        direction: [1, 0],
+        targetDirection:null,
+        paths: [[Math.floor(width / 4), Math.floor(height / 4)]],
+        targetX: targetX,
+        targetY: targetY
       }
       ,
-      this.ticks()
+      () => this.ticks()
     )
   }
 
@@ -101,30 +180,24 @@ class SnakeGame extends React.Component {
   }
 
   onKeyPress = (event) => {
-
     let state = this.state.state
-    if (state == 'Intro' || state == "GameOver") {
+    if (state != "Playing") {
       this.startGame()
       return
     }
-
-    //states are immutable, crate a copy of them for update 
-    let head = [...this.state.paths].pop()
-    let paths = [...this.state.paths]
-    let length = this.state.length
     let key = event.key
     if (Object.keys(this.directions).includes(key)) {
-
-      this.setState(
-        {
-          paths: paths,
-          score: this.state.score + 1,
-          direction:this.directions[key]
-        }
-      )
+      let originalDirection = this.state.direction
+      let newDirection = this.directions[key]
+      if ((originalDirection[0] || newDirection[0]) &&
+        (originalDirection[1] || newDirection[1])) {
+        this.setState(
+          {
+            targetDirection: this.directions[key]
+          }
+        )
+      }
     }
-
-
   }
 
   render() {

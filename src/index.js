@@ -6,7 +6,7 @@ import reportWebVitals from './reportWebVitals';
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
   <React.StrictMode>
-    <SnakeGame></SnakeGame>
+    <SnakeGame width="4" height="4" speed="3"></SnakeGame>
   </React.StrictMode>
 );
 
