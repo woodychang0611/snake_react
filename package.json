@@ -1,6 +1,7 @@
 {
   "name": "snake_react",
   "version": "0.1.0",
+  "homepage": "/snake",
   "private": true,
   "dependencies": {
     "@testing-library/jest-dom": "^5.16.5",
